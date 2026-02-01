@@ -1,0 +1,130 @@
+---
+title: "Permission Management"
+description: "Learn how to manage permission nodes and groups in your Hytale plugin."
+authors:
+    - name: "Neil Revin"
+      link: "https://itsneil.dev"
+    - name: "Bird"
+      link: "https://discord.com/users/495709580068651009"
+    - name: "Craw"
+      link: "https://discord.com/users/292656109939064833"
+    - name: "Ivan"
+      link: "https://discord.com/users/505770451218333717"
+---
+
+In this guide, you'll learn how to manage permission nodes and groups in your Hytale plugin.
+
+## The `PermissionsModule` class
+
+The `PermissionsModule` class is responsible for managing permission nodes and groups in your plugin. It provides methods to check, grant and revoke permissions and groups for players. It allows the following operations
+- Add permissions to user
+- Remove permissions from user
+- Add permissions to group (this also creates the group if it doesn't exist)
+- Remove permissions from group
+- Add user to group
+- Remove user from group
+- List all groups for a user
+- Check if a user has a permission (it checks both user and group permissions for the given player UUID)
+
+With this class you cannot:
+- List all defined groups
+- Remove a group 
+
+### Adding Permission Nodes
+
+You need a `Set<String>` containing all the permission nodes you want to add, these are added on top of the already existing permission nodes the user may have, it is not a replacement.
+
+```java
+Set<String> permissions = new HashSet<>();
+PermissionsModule perms = PermissionsModule.get();
+perms.addUserPermission(playerUUID, permissions);
+```
+
+### Removing Permission Nodes
+
+Same as above, we just use the `removeUserPermission` method instead to remove permission nodes.
+
+```java
+Set<String> permissions = new HashSet<>();
+PermissionsModule perms = PermissionsModule.get();
+perms.removeUserPermission(playerUUID, permissions);
+```
+
+### Add permissions to group
+```java
+String groupName = "testGroup";
+Set<String> permissions = new HashSet<>();
+PermissionsModule perms = PermissionsModule.get();
+perms.addGroupPermission(groupName, permissions);
+```
+
+### Remove permissions from group
+```java
+String groupName = "testGroup";
+Set<String> permissions = new HashSet<>();
+PermissionsModule perms = PermissionsModule.get();
+perms.removeGroupPermission(groupName, permissions);
+```
+
+### Add user to group
+```java
+String groupName = "testGroup";
+Set<String> permissions = new HashSet<>();
+PermissionsModule perms = PermissionsModule.get();
+perms.addUserToGroup(playerUUID, groupName);
+```
+
+### Remove user from group
+```java
+String groupName = "testGroup";
+Set<String> permissions = new HashSet<>();
+PermissionsModule perms = PermissionsModule.get();
+perms.removeUserFromGroup(playerUUID, groupName);
+```
+
+### List all groups for a user
+```java
+PermissionsModule perms = PermissionsModule.get();
+perms.getGroupsForUser(playerUUID);
+```
+
+### Check Permission Nodes
+
+To check if a player has a specific permission node, you can use the `hasPermission` method.
+
+```java
+boolean hasPermission = PermissionsModule.hasPermission(playerUUID, "permission.node");
+```
+
+## Additional: Defining your own provider for permissions and groups
+
+The PermissionsModule also enables us to define our own PermissionProvider's, this can be useful for:
+- Cross server permission systems
+- Implementing features missing in the `HytalePermissionsProvider` like permission expiry
+
+To implement our PermissionProvider, first we need to define a provider class that implements PermissionProvider: 
+
+```java
+public class DatabasePermissionProvider implements PermissionProvider
+```
+
+Then we just implement the required methods using a database implementation.
+<Callout type="warning">
+  Hytale will try to use the first available permissions provider to add/remove gamemode groups (i.e. `Creative`, `Adventure`).
+
+  If your provider throws an error (for instance, if the group does not exist) when the server is preparing the player, the player will be disconnected.
+</Callout>
+
+We can then register the provider using the built-in permission module:
+```java
+PermissionsModule.get().addProvider(new DatabasePermissionProvider());
+```
+
+Please note that the `HytalePermissionsProvider` will still be enabled alongside your provider.
+The `PermissionsModule` will aggregate groups and permissions from all available providers.
+
+If you want to disable the default `HytalePermissionsProvider`, you can use:
+```java
+// put this **before** you add your provider
+PermissionsModule.get().removeProvider(PermissionsModule.get().getFirstPermissionProvider());
+```
