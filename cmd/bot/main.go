@@ -38,6 +38,9 @@ func main() {
 		case "index-docs":
 			handleIndexDocs(cfg, logger)
 			return
+		case "cleanup-commands":
+			handleCleanup()
+			return
 		case "help":
 			printHelp()
 			return
@@ -290,12 +293,14 @@ Commands:
   migrate              Run database migrations
   index-docs           Index documents for RAG
     --path <path>      Path to directory or file to index (required)
+  cleanup-commands     Remove all registered Discord commands (fixes duplicates)
   help                 Show this help message
   (no command)         Start the bot in normal mode
 
 Examples:
   ./bot migrate
   ./bot index-docs --path ./docs
+  ./bot cleanup-commands
   ./bot
 `
 	println(help)
